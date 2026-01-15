@@ -1,10 +1,7 @@
 package com.HimanshuBagga.TestingSpringBoot.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -14,6 +11,8 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
+@Builder
 public class EmployeeEntity {
     @Id // primary Key of a table each table needs a unique identifier
     @GeneratedValue(strategy = GenerationType.IDENTITY)

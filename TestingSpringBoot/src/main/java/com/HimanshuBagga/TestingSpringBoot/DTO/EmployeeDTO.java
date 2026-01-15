@@ -32,5 +32,5 @@ public class EmployeeDTO {
     @PastOrPresent(message = "Date of joining field should not be in future")
     private LocalDate dateOfJoining;
     @AssertTrue(message = "Employee should be active")
-    private Boolean isActive;
+    private Boolean active;
 }

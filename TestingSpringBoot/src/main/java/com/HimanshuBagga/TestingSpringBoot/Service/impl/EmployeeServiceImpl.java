@@ -55,7 +55,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         existing.setEmail(employeeDTO.getEmail());
         existing.setAge(employeeDTO.getAge());
         existing.setDateOfJoining(employeeDTO.getDateOfJoining());
-        existing.setActive(employeeDTO.getActive());
+        existing.setIsActive(employeeDTO.getActive());
 
         return modelMapper.map(employeeRepository.save(existing), EmployeeDTO.class);
     }
