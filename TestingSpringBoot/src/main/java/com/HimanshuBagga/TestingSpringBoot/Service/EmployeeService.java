@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface EmployeeService {
 
-    Optional<EmployeeDTO> getEmployeeById(Long id);
+    EmployeeDTO getEmployeeById(Long id);
 
     List<EmployeeDTO> getAllEmployee();
 

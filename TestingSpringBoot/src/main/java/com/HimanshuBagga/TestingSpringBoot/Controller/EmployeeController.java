@@ -83,11 +83,8 @@ public class EmployeeController {
 
     @GetMapping("/{employeeId}")
     public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long employeeId) {
-        Optional<EmployeeDTO> employeeDTO =  employeeService.getEmployeeById(employeeId);
-        return employeeDTO
-                .map(employeeDTO1 -> ResponseEntity.ok(employeeDTO1))
-                //                .orElse(ResponseEntity.notFound().build());
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not there with ID: " + employeeId));
+        EmployeeDTO employeeDTO = employeeService.getEmployeeById(employeeId);
+        return ResponseEntity.ok(employeeDTO);
     }
 
     //problem with this code below is that it works only for EmployeeController what if we have diffrent controller for this then we need to use global exception hence we need to declare it globally inside the advice section

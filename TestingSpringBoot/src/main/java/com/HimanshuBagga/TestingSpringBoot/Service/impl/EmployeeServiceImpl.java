@@ -5,6 +5,8 @@ import com.HimanshuBagga.TestingSpringBoot.Service.EmployeeService;
 import com.HimanshuBagga.TestingSpringBoot.entities.EmployeeEntity;
 import com.HimanshuBagga.TestingSpringBoot.exceptions.ResourceNotFoundException;
 import com.HimanshuBagga.TestingSpringBoot.repository.EmployeeRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
@@ -16,20 +18,21 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final ModelMapper modelMapper;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ModelMapper modelMapper) {
-        this.employeeRepository = employeeRepository;
-        this.modelMapper = modelMapper;
-    }
+
 
     @Override
-    public Optional<EmployeeDTO> getEmployeeById(Long id) {
-        return employeeRepository.findById(id)
-                .map(entity -> modelMapper.map(entity, EmployeeDTO.class));
+    public EmployeeDTO getEmployeeById(Long id) {
+        EmployeeEntity employee =  employeeRepository.findById(id).orElseThrow(() ->{
+                return new ResourceNotFoundException("Employee Not found with Id : " , id);
+        });
+        return modelMapper.map(employee , EmployeeDTO.class);
     }
 
     @Override
