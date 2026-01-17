@@ -8,6 +8,7 @@ import com.HimanshuBagga.TestingSpringBoot.entities.EmployeeEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -95,6 +96,10 @@ class EmployeeRepositoryTest {
         assertThat(employeeDTO).isNotNull();
         assertThat(employeeDTO.getEmail()).isEqualTo(mockEmployeeDTO.getEmail());
 
-        verify(employeeRepository).save(any(EmployeeEntity.class));
+        ArgumentCaptor<EmployeeEntity> employeeEntityArgumentCaptor = ArgumentCaptor.forClass(EmployeeEntity.class);
+        verify(employeeRepository).save(employeeEntityArgumentCaptor.capture()); //capture the real object passed over
+
+        EmployeeEntity captureEmployee = employeeEntityArgumentCaptor.getValue();
+        assertThat(captureEmployee.getEmail()).isEqualTo(mockEmployee.getEmail());
     }
 }
