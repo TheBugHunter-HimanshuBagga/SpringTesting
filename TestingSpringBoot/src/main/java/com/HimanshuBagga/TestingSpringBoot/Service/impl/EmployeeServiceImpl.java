@@ -30,7 +30,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public EmployeeDTO getEmployeeById(Long id) {
         EmployeeEntity employee =  employeeRepository.findById(id).orElseThrow(() ->{
-                return new ResourceNotFoundException("Employee Not found with Id : " , id);
+            throw new ResourceNotFoundException("Employee Not found with Id : " + id);
         });
         return modelMapper.map(employee , EmployeeDTO.class);
     }
