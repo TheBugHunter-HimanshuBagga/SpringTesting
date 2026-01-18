@@ -5,6 +5,7 @@ import com.HimanshuBagga.TestingSpringBoot.Service.EmployeeService;
 import com.HimanshuBagga.TestingSpringBoot.Service.impl.EmployeeServiceImpl;
 import com.HimanshuBagga.TestingSpringBoot.TestContainerConfiguration;
 import com.HimanshuBagga.TestingSpringBoot.entities.EmployeeEntity;
+import com.HimanshuBagga.TestingSpringBoot.exceptions.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,11 +25,9 @@ import java.util.List;
 import java.util.Optional;
 
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 //@SpringBootTest only for integration testing
 
@@ -82,6 +81,18 @@ class EmployeeRepositoryTest {
     }
 
     @Test
+    void testgetEmployeeById_WhenEmployeeIsNotPresent_thenThrowTheException(){
+        // assign
+            when(employeeRepository.findById(anyLong())).thenReturn(Optional.empty());
+        //  act// assert
+            assertThatThrownBy(() -> employeeService.getEmployeeById(1L))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage("Employee not found with Id : 1");
+
+            verify(employeeRepository).findById(1L);
+    }
+
+    @Test
     void testCreateNewEmployee_WhenValidEmployee_ThenCreateNewEmployee(){
 
         // assign
@@ -97,9 +108,91 @@ class EmployeeRepositoryTest {
         assertThat(employeeDTO.getEmail()).isEqualTo(mockEmployeeDTO.getEmail());
 
         ArgumentCaptor<EmployeeEntity> employeeEntityArgumentCaptor = ArgumentCaptor.forClass(EmployeeEntity.class);
-        verify(employeeRepository).save(employeeEntityArgumentCaptor.capture()); //capture the real object passed over
-
+        verify(employeeRepository).save(employeeEntityArgumentCaptor.capture()); // checks that was saved called or not
+        // now we want to know what specific object was passed to save() -> to get this we want argument capture
         EmployeeEntity captureEmployee = employeeEntityArgumentCaptor.getValue();
         assertThat(captureEmployee.getEmail()).isEqualTo(mockEmployee.getEmail());
     }
+
+    @Test
+    void testCreateNewEmployee_WhenAttemptingToCreateEmployeeWithExistingEmail_thenThrowAnException(){
+        //assign
+        when(employeeRepository.findByEmail(mockEmployeeDTO.getEmail())).thenReturn(List.of(mockEmployee));
+        // act// assert
+        assertThatThrownBy(() -> employeeService.createNewEmployee(mockEmployeeDTO))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Employee Already exists with email: " + mockEmployeeDTO.getEmail());
+
+        verify(employeeRepository).findByEmail(mockEmployeeDTO.getEmail());
+        verify(employeeRepository , never()).save(any()); // save method is never called by any thing
+    }
+
+    @Test
+    void testUpdateEmployeeById_whenEmployeeDoesNotExists_thenThrowException(){
+        when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // act and assert
+        // assertThatThrownBy -> execute this method and i except it to throw an exception
+        assertThatThrownBy(() -> employeeService.updateEmployeeById(1L , mockEmployeeDTO))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Employee not found with ID: 1 ");
+
+        verify(employeeRepository.findById(1L));
+        verify(employeeRepository , never()).save(any()); // save method never called
+    }
+
+
+    @Test
+    void testupdateEmployeeById_whenAttemptingToUpdateEmail_thenThrowException(){
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(mockEmployee)); // employeee exists
+        mockEmployeeDTO.setName("Random");
+        // act and assert
+
+        assertThatThrownBy(() -> employeeService.updateEmployeeById(mockEmployeeDTO.getId() , mockEmployeeDTO))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("The email of the employee not found :");
+
+        verify(employeeRepository.findById(1L));
+        verify(employeeRepository , never()).save(any());
+    }
+
+    @Test
+    void testUpdateEmployeeById_WhenValidEmployee_thenUpdateEmployee(){
+        when(employeeRepository.findById(mockEmployeeDTO.getId())).thenReturn(Optional.of(mockEmployee));
+        mockEmployeeDTO.setName("Random");
+        mockEmployeeDTO.setAge(21);
+
+        EmployeeEntity newEmployee = modelMapper.map(mockEmployeeDTO , EmployeeEntity.class); // mockEmployeeDTO -> EmploueeEnity to save in repo
+        when(employeeRepository.save(any(EmployeeEntity.class))).thenReturn(newEmployee); // save the entity inside repo
+
+        EmployeeDTO updatedEmployeeDTO = employeeService.updateEmployeeById(mockEmployeeDTO.getId() , mockEmployeeDTO);
+    //assertThat is used to VERIFY whether the actual result is correct or not.
+        assertThat(updatedEmployeeDTO).isEqualTo(mockEmployeeDTO);
+        verify(employeeRepository).findById(1L);
+        verify(employeeRepository).save(any());
+    }
+
+    @Test
+    void testDeleteEmployee_whenEmployeeDoesNotExistsById_thenTrowException(){
+        when(employeeRepository.existsById(1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> employeeService.deleteEmployeeById(1L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Employee not found with ID: 1");
+
+        verify(employeeRepository , never()).deleteById(anyLong()); // never calls delete by Id
+    }
+
+    @Test
+    void testDeleteEmployee_whenEmployeeExistsById_thenDeleteEmployee(){
+        when(employeeRepository.existsById(1L)).thenReturn(true);
+
+//        EmployeeDTO employeeDTO = employeeService.deleteEmployeeById(1L);
+
+        assertThatCode(() -> employeeService.deleteEmployeeById(1L))
+                .doesNotThrowAnyException();
+
+        verify(employeeRepository).deleteById(anyLong());
+    }
+
 }

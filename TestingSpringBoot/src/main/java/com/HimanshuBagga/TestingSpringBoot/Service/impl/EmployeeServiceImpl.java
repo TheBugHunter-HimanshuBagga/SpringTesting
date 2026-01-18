@@ -47,7 +47,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public EmployeeDTO createNewEmployee(EmployeeDTO employeeDTO) {
         List<EmployeeEntity> employeeEntities = employeeRepository.findByEmail(employeeDTO.getEmail());
         if(!employeeEntities.isEmpty()) {
-            throw new RuntimeException("Employee Already exists with id: " + employeeDTO.getEmail());
+            throw new RuntimeException("Employee Already exists with email: " + employeeDTO.getEmail());
         }
         EmployeeEntity newEmployee = modelMapper.map(employeeDTO , EmployeeEntity.class);
         EmployeeEntity savedEmployee = employeeRepository.save(newEmployee);
@@ -56,25 +56,27 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public EmployeeDTO updateEmployeeById(Long employeeId, EmployeeDTO employeeDTO) {
-        EmployeeEntity existing = employeeRepository.findById(employeeId)
+        EmployeeEntity employee = employeeRepository
+                .findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with ID: " + employeeId));
 
-        existing.setName(employeeDTO.getName());
-        existing.setEmail(employeeDTO.getEmail());
-        existing.setAge(employeeDTO.getAge());
-        existing.setDateOfJoining(employeeDTO.getDateOfJoining());
-        existing.setIsActive(employeeDTO.getActive());
+        if(!employee.getEmail().equals(employeeDTO.getEmail())){
+            throw new RuntimeException("The email of the employee not found :");
+        }
 
-        return modelMapper.map(employeeRepository.save(existing), EmployeeDTO.class);
+        employeeDTO.setId(null);// id should not change
+        modelMapper.map(employeeDTO , employee); // map the new changed field from employeeDTO to employee entity
+
+        EmployeeEntity savedEmployee = employeeRepository.save(employee);
+        return modelMapper.map(savedEmployee , EmployeeDTO.class);
     }
 
     @Override
-    public boolean deleteEmployeeById(Long employeeId) {
+    public void deleteEmployeeById(Long employeeId) {
         if (!employeeRepository.existsById(employeeId)) {
             throw new ResourceNotFoundException("Employee not found with ID: " + employeeId);
         }
         employeeRepository.deleteById(employeeId);
-        return true;
     }
 
     @Override

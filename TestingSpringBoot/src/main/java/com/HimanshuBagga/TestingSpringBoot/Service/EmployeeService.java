@@ -16,7 +16,7 @@ public interface EmployeeService {
 
     EmployeeDTO updateEmployeeById(Long employeeId, EmployeeDTO employeeDTO);
 
-    boolean deleteEmployeeById(Long employeeId);
+    void deleteEmployeeById(Long employeeId);
 
     EmployeeDTO updatePartialEmployeeById(Long employeeId, Map<String, Object> updates);
 }
