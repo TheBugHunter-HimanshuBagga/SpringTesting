@@ -113,10 +113,8 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/{employeeId}")
-    public ResponseEntity<Boolean> deleteEmployeeById(@PathVariable Long employeeId) {
-        //        return ResponseEntity.ok(employeeService.deleteEmployeeById(employeeId));
-        boolean gotDeleted = employeeService.deleteEmployeeById(employeeId);
-        if(gotDeleted) return ResponseEntity.ok(true);
+    public ResponseEntity<Void> deleteEmployeeById(@PathVariable Long employeeId) {
+        employeeService.deleteEmployeeById(employeeId);
         return ResponseEntity.notFound().build();
     }
 
